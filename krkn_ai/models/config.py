@@ -248,6 +248,8 @@ class ElasticConfig(BaseModel):
     password: str = Field(exclude=True, default="")  # Elasticsearch password
     index: str = "krkn-ai-metrics"  # Index name for storing Krkn-AI results
     verify_certs: bool = True  # Verify SSL certificates
+    retry_attempts: int = 3  # Times to retry a failed write before giving up
+    request_timeout: int = 30
 
     @model_validator(mode="after")
     def server_required_when_enabled(self) -> "ElasticConfig":
