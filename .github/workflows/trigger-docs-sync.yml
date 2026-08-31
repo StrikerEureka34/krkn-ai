@@ -1,0 +1,45 @@
+name: Trigger docs sync
+
+# Part of the krkn docs-sync bot: krkn-chaos/docsync-bot#28.
+#
+#   Watches   krkn_ai/cli/cmd.py, krkn_ai/models/config.py
+#   Sends     the krkn-ai target to Doc Sync on StrikerEureka34/website_2
+#   Changes   nothing here: its app token is scoped to website_2
+#
+# push, not pull_request: a fork PR gets no secrets, and a merge is a push anyway.
+#
+# No per-scenario fan-out, unlike the krkn-hub trigger. krkn-ai has one CLI and
+# one config model, so every relevant change resolves to the same single target.
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - krkn_ai/cli/cmd.py
+      - krkn_ai/models/config.py
+
+permissions:
+  contents: read
+
+jobs:
+  dispatch:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Mint a website-scoped app token
+        id: app-token
+        uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # v3.2.0
+        with:
+          app-id: ${{ secrets.APP_ID }}
+          private-key: ${{ secrets.APP_PRIVATE_KEY }}
+          owner: StrikerEureka34
+          repositories: website_2
+
+      - name: Dispatch doc-sync on the website
+        env:
+          GH_TOKEN: ${{ steps.app-token.outputs.token }}
+        run: |
+          # The literal target, not a value read from the push: nothing here is
+          # attacker-controlled and the bot validates it again on the far side.
+          gh workflow run doc-sync.lock.yml \
+            --repo StrikerEureka34/website_2 \
+            -f scenarios="krkn-ai"
