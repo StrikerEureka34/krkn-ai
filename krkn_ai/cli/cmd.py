@@ -41,7 +41,7 @@ def main():
     help="Path to cluster kubeconfig file. Setting this will override value in config file.",
     envvar="KUBECONFIG",
 )
-@click.option("--config", "-c", help="Path to the Krkn-AI config file to run.")
+@click.option("--config", "-c", help="Path to krkn-ai config file.")
 @click.option("--output", "-o", help="Directory to save results.", default="./")
 @click.option(
     "--format",
@@ -88,11 +88,6 @@ def main():
     is_flag=True,
     help="Allow scenarios with a cluster-critical blast radius (e.g. service disruption).",
 )
-@click.option(
-    "--dry-run",
-    is_flag=True,
-    help="Plan the run and print the scenarios without injecting any chaos.",
-)
 @click.pass_context
 def run(
     ctx,
@@ -107,7 +102,6 @@ def run(
     monitoring: bool = False,
     port: int = 8501,
     allow_dangerous_scenarios: bool = False,
-    dry_run: bool = False,
 ):
     run_uuid = str(uuid.uuid4())
     new_output_path = os.path.join(output, run_uuid)
